@@ -1,5 +1,5 @@
-from multiprocessing.pool import CLOSE
-import sys, re
+#! python3
+import sys
 
 STRING = 0
 ID = 1
@@ -46,7 +46,28 @@ def lex_int(input, sign):
     while i < len(input) and input[i].isdigit():
         lexeme += input[i]
         i += 1
-    return ((INT, sign*int(lexeme)), input[i])
+    return ((INT, sign*int(lexeme)), input[i:])
+
+def lex_string(input):
+    i = 0
+    lexeme = ''
+    while i < len(input):
+        if input[i] == '\\':
+            i += 1
+            if input[i] == 't':
+                lexeme += '\t'
+            elif input[i] == 'n':
+                lexeme += '\n'
+            elif input[i] == '"':
+                lexeme += '"'
+            else:
+                lexeme += '\\'
+        elif input[i] == '"':
+            break
+        else:
+            lexeme += input[i]
+        i += 1
+    return ((STRING, lexeme), input[i+1:])
 
 def lex_keyword_or_id(input):
     lexeme = ''
@@ -84,28 +105,28 @@ def lex(input):
             return ((CLOSE_PAR, None), input[i+1:])
         case '=':
             i += 1
-            if input[i] == '=':
+            if i < len(input) and input[i] == '=':
                 return ((SAME, None), input[i+1:])
             else:
                 return ((EQUAL, None), input[i:])
         case '>':
             i += 1
-            if input[i] == '=':
+            if i < len(input) and input[i] == '=':
                 return ((GE, None), input[i+1:])
             else:
                 return ((GT, None), input[i:])
         case '<':
             i += 1
-            if input[i] == '=':
+            if i < len(input) and input[i] == '=':
                 return ((LE, None), input[i+1:])
             else:
                 return ((LT, None), input[i:])
         case '!':
             i += 1
-            if input[i] == '=':
+            if i < len(input) and input[i] == '=':
                 return ((NOT_EQUAL, None), input[i+1:])
             else:
-                return ((ERROR, 'Unexpected !'), input)
+                return (error('Unexpected "!"'), input)
         case '-':
             i += 1
             if i < len(input) and input[i].isdigit():
@@ -118,6 +139,8 @@ def lex(input):
                 return lex_int(input[i:], 1)
             else:
                 return ((PLUS, None), input[i:])
+        case '"':
+            return lex_string(input[i+1:])
         case _:
             if input[i].isdigit():
                 return lex_int(input[i:], 1)
