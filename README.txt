@@ -1,5 +1,5 @@
-#pyprog
 Python interpreted programming language created for CS 4337
+Ethan Fischer ejf180001
 
 lexer.py - lexical analyzer for the language, includes the driver program to run the lexer
 and prints all tokens to the screen
@@ -10,7 +10,9 @@ attributed_grammar.pdf - defines the base grammar for the language (pre changes)
 
 denotational_semantics.pdf - defines the base denotational semantics of the language (pre changes)
 
-writeup
+State Transition Diagram.png - state transition diagram for part 1 (also in writeup)
+
+writeup.pdf - writeup for part 1 of the project
 
 HOW TO RUN AND COMPILE:
 The lexer.py file includes the driver program, so you just need to run lexer.py

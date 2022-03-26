@@ -39,7 +39,7 @@ do
         x = x - 1;
 end
 
-print x / y;
+print x % y;
 
 # print end of program message
 print "Simon says \n \"Good bye!\"";
