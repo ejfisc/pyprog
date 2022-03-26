@@ -6,6 +6,10 @@ and prints all tokens to the screen
 
 test.prog - test program in the pyprog language for the lexer.py driver program
 
+attributed_grammar.pdf - defines the base grammar for the language (pre changes)
+
+denotational_semantics.pdf - defines the base denotational semantics of the language (pre changes)
+
 writeup
 
 HOW TO RUN AND COMPILE:
