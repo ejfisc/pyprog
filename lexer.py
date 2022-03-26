@@ -1,4 +1,5 @@
 #! python3
+# lexer.py - lexical analyzer for the pyprog language
 import sys
 
 STRING = 0
@@ -23,7 +24,7 @@ NOT_EQUAL = 18
 OPEN_PAR = 19
 CLOSE_PAR = 20
 
-KEYWORDS = ['print', 'get', 'and', 'or', 'if', 'while', 'then', 'else', 'end', 'not']
+KEYWORDS = ['print', 'get', 'and', 'do', 'or', 'if', 'while', 'for', 'then', 'else', 'end', 'not']
 
 line = 1
 
@@ -32,7 +33,7 @@ def next_line():
     line += 1
 
 def error(msg):
-    return (ERROR, 'Error on line {line}: {msg}') # return error
+    return (ERROR, 'Error on line %s: %s' % (line, msg)) # return error
 
 def lookup(lexeme):
     if lexeme in KEYWORDS:
@@ -148,6 +149,8 @@ def lex(input):
                 return lex_keyword_or_id(input[i:])
 
 # driver program
+
+print("Enter your program:")
 
 input = list(sys.stdin.read())
 

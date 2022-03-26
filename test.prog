@@ -1,0 +1,45 @@
+# test.prog - test program file in the pyprog language
+
+print "\"Hello world!\"\n"
+
+get x;
+get y;
+get z; # these are the 3 variables
+
+# define variables
+x = 10;
+y = -5;
+z = 0;
+
+# for loop
+for i 10
+do
+    x = x + i; # increment x
+    y = y * i; # multiply y
+    z = x + y; # combine x and y
+    # compare x and y
+    if x >= y
+    then
+        # print x
+        print "x...\t" + x;
+    else
+        # print y
+        print "y...\t" + y;
+    
+    print "z...\t" + z;
+end # end for loop
+
+# make x and y the same 
+while x != y
+do
+    if x < y
+    then
+        x = x + 1;
+    else
+        x = x - 1;
+end
+
+print x / y;
+
+# print end of program message
+print "Simon says \n \"Good bye!\"";
