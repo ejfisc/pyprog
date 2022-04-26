@@ -148,16 +148,16 @@ def lex(input):
             elif input[i] == '_' or input[i].isalpha():
                 return lex_keyword_or_id(input[i:])
 
-# driver program
+# # driver program
 
-print("Enter your program:")
+# print("Enter your program:")
 
-input = list(sys.stdin.read())
+# input = list(sys.stdin.read())
 
-tmp = lex(input)
+# tmp = lex(input)
 
-while tmp[0][0] != ERROR and tmp[0][0] != END_OF_INPUT:
-    print(tmp[0])
-    tmp = lex(tmp[1])
+# while tmp[0][0] != ERROR and tmp[0][0] != END_OF_INPUT:
+#     print(tmp[0])
+#     tmp = lex(tmp[1])
 
-print(tmp[0])
+# print(tmp[0])
