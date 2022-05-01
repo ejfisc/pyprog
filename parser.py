@@ -25,6 +25,77 @@ def parseVal():
         error('Expected Value')
         return False
 
+def parseCompare():
+    if nextToken[0] in [lexer.SAME, lexer.LE, lexer.LT, lexer.GT, lexer.GE, lexer.NOT_EQUAL]:
+        lex()
+    else:
+        error('Expected comparison operator')
+        return False
+    return True
+
+def while_helper():
+    lex()
+    res = parseCompare()
+    if res:
+        res = parseVal()
+        if res:
+            res = parseProg()
+            if res:
+                if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'end':
+                    lex()
+                else:
+                    error('Expected "end"')
+                    return False
+    return res
+
+def if_helper():
+    lex()
+    res = parseCompare()
+    if res:
+        res = parseVal()
+        if res:
+            if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'then':
+                res = parseProg()
+                if res:
+                    if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'end':
+                        lex()
+                    else:
+                        error('Expected "end"')
+                        return False
+            else:
+                error('Expected "then"')
+                return False
+    return res
+
+
+def for_helper():
+    print('made it here')
+    lex()
+    res = parseVal()
+    if res:
+        if nextToken[0] != lexer.ID:
+            error('Expected ID')
+            return False
+        else:
+            lex()
+            if nextToken[0] != lexer.INT:
+                error('Expected INT')
+                return False
+            else:
+                lex()
+                if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'do':
+                    res = parseProg()
+                    if res:
+                        if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'end':
+                            lex()
+                        else:
+                            error('Expected "end"')
+                            return False
+                    else:
+                        error('Expected "do"')
+                        return False
+    return res
+
 def parseCmd():
     if nextToken[0] == lexer.KEYWORD:
         match nextToken[1]:
@@ -45,11 +116,11 @@ def parseCmd():
             case 'or':
                 pass
             case 'if':
-                pass
+                return if_helper()
             case 'while':
-                pass
+                return while_helper()
             case 'for':
-                pass
+                return for_helper()
             case 'then':
                 pass
             case 'else':
