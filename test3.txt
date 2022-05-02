@@ -1,0 +1,10 @@
+print "Welcome to my program.\n";
+print "Enter a number: ";
+get x;
+if x > 0
+then
+  x=x*2;
+else
+  x=-x;
+end;
+print x;

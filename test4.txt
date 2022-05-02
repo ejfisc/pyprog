@@ -1,0 +1,21 @@
+print "How many numbers will you input? ";
+get num;
+
+i=0;
+sum=0;
+while i < num
+do
+  get _x;
+  sum = sum + _x;
+end;
+
+q = sum / num;
+r = sum % num;
+
+print "The average is ";
+print q;
+print " ";
+print r;
+print "/";
+print num;
+print "\n"

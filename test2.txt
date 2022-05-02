@@ -1,0 +1,9 @@
+get x;
+get y;
+get z;
+if (x > y and y) - z
+then
+  print "\t It is true!\n";
+else
+  print "\t It is false!!\n";
+end;
