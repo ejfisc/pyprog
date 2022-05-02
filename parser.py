@@ -170,7 +170,6 @@ def parsePrint():
     # "print" <expr>
     else:
         if parseExpression():
-            lex()
             if nextToken[0] == lexer.SEMICOLON:
                 lex()
                 return True
@@ -197,8 +196,8 @@ def parseInput():
 # <assign> -> ID "=" <expr>
 def parseAssign():
     if nextToken[0] == lexer.EQUAL:
+        lex()
         if parseExpression():
-            lex()
             if nextToken[0] == lexer.SEMICOLON:
                 lex()
                 return True
@@ -344,10 +343,14 @@ def parseIf():
 # <while> -> "while" <expr> "do" <stmt_list> "end"
 def parseWhile():
     global while_state
+    # "while" <expr>
     if parseExpression():
-        lex()
+        # "while" <expr> "do"
         if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'do':
+            lex()
+            # "while" <expr> "do" <stmt_list>
             if parseProg():
+                # while <expr> "do" <stmt_list> "end"
                 if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'end':
                     lex()
                     if nextToken[0] == lexer.SEMICOLON:
@@ -371,15 +374,22 @@ def parseWhile():
 # <for> -> "for" ID INT "do" <stmt_list> "end"
 def parseFor():
     global for_state
+    # "for" ID
     if nextToken[0] == lexer.ID:
         lex()
+        # "for" ID INT
         if nextToken[0] == lexer.INT:
             lex()
+            # "for" ID INT "do"
             if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'do':
+                lex()
+                # "for" ID INT "do" <stmt_list>
                 if parseProg():
+                    # "for" ID INT "do" <stmt_list> "end"
                     if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'end':
                         lex()
                         if nextToken[0] == lexer.SEMICOLON:
+                            lex()
                             for_state = False
                             return True
                         else:

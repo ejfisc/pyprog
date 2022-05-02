@@ -1,6 +1,6 @@
 # test.prog - test program file in the pyprog language
 
-print "\"Hello world!\"\n"
+print "\"Hello world!\"\n";
 
 get x;
 get y;
@@ -25,9 +25,9 @@ do
     else
         # print y
         print "y...\t" + y;
-    
+    end;
     print "z...\t" + z;
-end # end for loop
+end; # end for loop
 
 # make x and y the same 
 while x != y
@@ -37,7 +37,8 @@ do
         x = x + 1;
     else
         x = x - 1;
-end
+    end;
+end;
 
 print x % y;
 
