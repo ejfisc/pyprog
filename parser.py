@@ -22,8 +22,8 @@ def lex():
 #             "==" <value>
 #             "!=" <value>
 def parseVExpr():
-    lex()
     if nextToken[0] in [lexer.GT, lexer.GE, lexer.LT, lexer.LE, lexer.SAME, lexer.NOT_EQUAL]:
+        lex()
         if parseVal():
             return True
         else:
@@ -47,9 +47,9 @@ def parseFactor():
 #             "/" <term>
 #             "%" <term>
 def parseFExpr():
-    lex()
     # "*" <term>, "/" <term>, "%" <term>
     if nextToken[0] in [lexer.TIMES, lexer.DIVIDE, lexer.MODULO]:
+        lex()
         if parseTerm():
             return True
         else:
@@ -72,9 +72,9 @@ def parseTerm():
 #             "+" <n_expr>
 #             "-" <n_expr>
 def parseTExpr():
-    lex()
     # "+" <n_expr>, "-" <n_expr>
     if nextToken[0] in [lexer.PLUS, lexer.MINUS]:
+        lex()
         if parseNExpr():
             return True
         else:
@@ -97,9 +97,9 @@ def parseNExpr():
 #             "and" <n_expr>
 #             "or" <n_expr>
 def parseBExpr():
-    lex()
     # "and" <n_expr>, "or" <n_expr>
     if nextToken[0] == lexer.KEYWORD and nextToken[1] in ['and', 'or']:
+        lex()
         if parseNExpr():
             return True
         else:
@@ -126,13 +126,12 @@ def parseExpression():
 #            ID
 #            INT
 def parseVal():
-    lex()
     # "(" <expr> ")"
     if nextToken[0] == lexer.OPEN_PAR:
         lex()
         if parseExpression():
-            lex()
             if nextToken[0] == lexer.CLOSE_PAR:
+                lex()
                 return True
             else:
                 error('Expected close parentheses')
@@ -141,12 +140,15 @@ def parseVal():
             return False
     # "not" <value>
     elif nextToken[0] == lexer.KEYWORD and nextToken[1] == 'not':
+        lex()
         return parseVal()
     # "-" <value>
     elif nextToken[0] == lexer.MINUS:
+        lex()
         return parseVal()
     # ID or INT
     elif nextToken[0] in [lexer.INT, lexer.ID]:
+        lex()
         return True
     else:
         error('Expected Value')
@@ -248,21 +250,18 @@ def parseStmt():
                 return parseFor()
             case 'then':
                 if if_state:
-                    lex()
                     return None
                 else:
                     error('"then" must be part of an if statement.')
                     return False
             case 'else':
                 if if_state:
-                    lex()
                     return None
                 else:
                     error('"else" must be part of an if statement.')
                     return False
             case 'end':
                 if if_state or while_state or for_state:
-                    lex()
                     return None
                 else:
                     error('"end" must be part of an if statement, or a loop.')
@@ -296,13 +295,14 @@ def parseIf():
     global if_state
     # "if" <expr>
     if parseExpression():
-        lex()
         # "if" <expr> "then"
         if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'then':
+            lex()
             # "if" <expr> "then" <stmt_list>
             if parseProg():
                 # "if" <expr> "then" <stmt_list> "else"
                 if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'else':
+                    lex()
                     # "if" <expr> "then" <stmt_list> "else" <stmt_list>
                     if parseProg():
                         # "if" <expr> "then" <stmt_list> "else" <stmt_list> "end"
