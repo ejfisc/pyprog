@@ -1,5 +1,9 @@
 import sys, lexer
 
+if_state = False
+while_state = False
+for_state = False
+
 def error(msg):
     print(f'Error on line {lexer.line}: {msg}')
 
@@ -20,9 +24,7 @@ def lex():
 def parseVExpr():
     lex()
     if nextToken[0] in [lexer.GT, lexer.GE, lexer.LT, lexer.LE, lexer.SAME, lexer.NOT_EQUAL]:
-        res = parseVal()
-        if res:
-            lex()
+        if parseVal():
             return True
         else:
             return False
@@ -32,11 +34,8 @@ def parseVExpr():
 
 # <factor> -> <value> <v_expr>
 def parseFactor():
-    res = parseVal()
-    if res:
-        res = parseVExpr()
-        if res:
-            lex()
+    if parseVal():
+        if parseVExpr():
             return True
         else:
             return False
@@ -51,9 +50,7 @@ def parseFExpr():
     lex()
     # "*" <term>, "/" <term>, "%" <term>
     if nextToken[0] in [lexer.TIMES, lexer.DIVIDE, lexer.MODULO]:
-        res = parseTerm()
-        if res:
-            lex()
+        if parseTerm():
             return True
         else:
             return False
@@ -63,11 +60,8 @@ def parseFExpr():
 
 # <term> -> <factor> <f_expr>
 def parseTerm():
-    res = parseFactor()
-    if res:
-        res = parseFExpr()
-        if res:
-            lex()
+    if parseFactor():
+        if parseFExpr():
             return True
         else:
             return False
@@ -81,9 +75,7 @@ def parseTExpr():
     lex()
     # "+" <n_expr>, "-" <n_expr>
     if nextToken[0] in [lexer.PLUS, lexer.MINUS]:
-        res = parseNExpr()
-        if res:
-            lex()
+        if parseNExpr():
             return True
         else:
             return False
@@ -93,12 +85,8 @@ def parseTExpr():
 
 # <n_expr> -> <term> <t_expr>
 def parseNExpr():
-    lex()
-    res = parseTerm()
-    if res:
-        res = parseTExpr()
-        if res:
-            lex()
+    if parseTerm():
+        if parseTExpr():
             return True
         else:
             return False
@@ -112,9 +100,7 @@ def parseBExpr():
     lex()
     # "and" <n_expr>, "or" <n_expr>
     if nextToken[0] == lexer.KEYWORD and nextToken[1] in ['and', 'or']:
-        res = parseNExpr()
-        if res:
-            lex()
+        if parseNExpr():
             return True
         else:
             return False
@@ -124,11 +110,8 @@ def parseBExpr():
 
 # <expr> -> <n_expr> <b_expr>
 def parseExpression():
-    res = parseNExpr()
-    if res:
-        res = parseBExpr()
-        if res:
-            lex()
+    if parseNExpr():
+        if parseBExpr():
             return True
         else:
             error('Invalid B Expression')
@@ -146,11 +129,10 @@ def parseVal():
     lex()
     # "(" <expr> ")"
     if nextToken[0] == lexer.OPEN_PAR:
-        res = parseExpression()
-        if res:
+        lex()
+        if parseExpression():
             lex()
             if nextToken[0] == lexer.CLOSE_PAR:
-                lex()
                 return True
             else:
                 error('Expected close parentheses')
@@ -165,7 +147,6 @@ def parseVal():
         return parseVal()
     # ID or INT
     elif nextToken[0] in [lexer.INT, lexer.ID]:
-        lex()
         return True
     else:
         error('Expected Value')
@@ -175,7 +156,6 @@ def parseVal():
 # <p-arg> -> STRING
 #            <expr>
 def parsePrint():
-    lex()
     # "print" STRING
     if nextToken[0] == lexer.STRING:
         lex()
@@ -187,8 +167,7 @@ def parsePrint():
             return False
     # "print" <expr>
     else:
-        res = parseExpression()
-        if res:
+        if parseExpression():
             lex()
             if nextToken[0] == lexer.SEMICOLON:
                 lex()
@@ -201,11 +180,7 @@ def parsePrint():
 
 # <input> -> "get" ID
 def parseInput():
-    lex()
-    if nextToken[0] != lexer.ID:
-        error('Expected ID')
-        return False
-    else:
+    if nextToken[0] == lexer.ID:
         lex()
         if nextToken[0] == lexer.SEMICOLON:
             lex()
@@ -213,14 +188,14 @@ def parseInput():
         else:
             error('Expected a semicolon')
             return False
+    else:
+        error('Expected ID')
+        return False
 
 # <assign> -> ID "=" <expr>
 def parseAssign():
-    lex()
     if nextToken[0] == lexer.EQUAL:
-        lex()
-        res = parseExpression()
-        if res:
+        if parseExpression():
             lex()
             if nextToken[0] == lexer.SEMICOLON:
                 lex()
@@ -241,11 +216,14 @@ def parseAssign():
 #           <while>
 #           <for>
 def parseStmt():
+    global if_state, while_state, for_state
     if nextToken[0] == lexer.KEYWORD:
         match nextToken[1]:
             case 'print':
+                lex()
                 return parsePrint()
             case 'get':
+                lex()
                 return parseInput()
             case 'and':
                 error('"and" must be part of an expression.')
@@ -257,20 +235,38 @@ def parseStmt():
                 error('"or" must be part of an expression.')
                 return False
             case 'if':
+                lex()
+                if_state = True
                 return parseIf()
             case 'while':
+                lex()
+                while_state = True
                 return parseWhile()
             case 'for':
+                lex()
+                for_state = True
                 return parseFor()
             case 'then':
-                error('"then" must be part of an if statement.')
-                return False
+                if if_state:
+                    lex()
+                    return None
+                else:
+                    error('"then" must be part of an if statement.')
+                    return False
             case 'else':
-                error('"else" must be part of an if statement.')
-                return False
+                if if_state:
+                    lex()
+                    return None
+                else:
+                    error('"else" must be part of an if statement.')
+                    return False
             case 'end':
-                error('"end" must be part of an if statement, or a loop.')
-                return False
+                if if_state or while_state or for_state:
+                    lex()
+                    return None
+                else:
+                    error('"end" must be part of an if statement, or a loop.')
+                    return False
             case 'not':
                 error('"not" must be part of a value')
                 return False
@@ -278,6 +274,7 @@ def parseStmt():
                 error('Expected Command')
                 return False    
     elif nextToken[0] == lexer.ID:
+        lex()
         return parseAssign()
     else:
         error('Expected Statement')
@@ -287,35 +284,33 @@ def parseStmt():
 # <stmt_list> -> <stmt> ";" <stmt_list>
 def parseProg():
     res = parseStmt()
-    if res:
+    if res == None:
+        return True
+    elif res:
         if nextToken[0] != lexer.END_OF_INPUT:
             res = parseProg()
     return res
 
 # <if> -> "if" <expr> "then" <stmt_list> "else" <stmt_list> "end"
 def parseIf():
-    lex()
-    res = parseExpression()
+    global if_state
     # "if" <expr>
-    if res:
+    if parseExpression():
         lex()
         # "if" <expr> "then"
         if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'then':
-            lex()
-            res = parseProg()
             # "if" <expr> "then" <stmt_list>
-            if res:
+            if parseProg():
                 # "if" <expr> "then" <stmt_list> "else"
                 if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'else':
-                    lex()
-                    res = parseProg()
                     # "if" <expr> "then" <stmt_list> "else" <stmt_list>
-                    if res:
+                    if parseProg():
                         # "if" <expr> "then" <stmt_list> "else" <stmt_list> "end"
                         if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'end':
                             lex()
                             if nextToken[0] == lexer.SEMICOLON:
                                 lex()
+                                if_state = False
                                 return True
                             else:
                                 error('Expected a semicolon')
@@ -330,6 +325,7 @@ def parseIf():
                     lex()
                     if nextToken[0] == lexer.SEMICOLON:
                         lex()
+                        if_state = False
                         return True
                     else:
                         error('Expected a semicolon')
@@ -347,19 +343,16 @@ def parseIf():
 
 # <while> -> "while" <expr> "do" <stmt_list> "end"
 def parseWhile():
-    lex()
-    res = parseExpression()
-    if res:
+    global while_state
+    if parseExpression():
         lex()
         if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'do':
-            lex()
-            res = parseProg()
-            if res:
-                lex()
+            if parseProg():
                 if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'end':
                     lex()
                     if nextToken[0] == lexer.SEMICOLON:
                         lex()
+                        while_state = False
                         return True
                     else:
                         error('Expected a semicolon')
@@ -377,19 +370,17 @@ def parseWhile():
 
 # <for> -> "for" ID INT "do" <stmt_list> "end"
 def parseFor():
-    lex()
+    global for_state
     if nextToken[0] == lexer.ID:
         lex()
         if nextToken[0] == lexer.INT:
             lex()
             if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'do':
-                res = parseProg()
-                if res:
-                    lex()
+                if parseProg():
                     if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'end':
                         lex()
                         if nextToken[0] == lexer.SEMICOLON:
-                            lex()
+                            for_state = False
                             return True
                         else:
                             error('Expected a semicolon')
@@ -410,6 +401,7 @@ def parseFor():
         return False        
 
 # Driver
+
 input = list(sys.stdin.read())
 lex()
 
