@@ -9,10 +9,10 @@ def error(msg):
 
 def lex():
     global input
-    global nextToken
-    (nextToken,input) = lexer.lex(input)
-    if nextToken[0] == lexer.ERROR:
-        print(nextToken[1])
+    global next_token
+    (next_token,input) = lexer.lex(input)
+    if next_token[0] == lexer.ERROR:
+        print(next_token[1])
 
 # <v_expr> -> 𝜀
 #             ">" <value>
@@ -21,10 +21,10 @@ def lex():
 #             "<=" <value>
 #             "==" <value>
 #             "!=" <value>
-def parseVExpr():
-    if nextToken[0] in [lexer.GT, lexer.GE, lexer.LT, lexer.LE, lexer.SAME, lexer.NOT_EQUAL]:
+def parse_v_expr():
+    if next_token[0] in [lexer.GT, lexer.GE, lexer.LT, lexer.LE, lexer.SAME, lexer.NOT_EQUAL]:
         lex()
-        if parseVal():
+        if parse_value():
             return True
         else:
             return False
@@ -33,9 +33,9 @@ def parseVExpr():
         return True
 
 # <factor> -> <value> <v_expr>
-def parseFactor():
-    if parseVal():
-        if parseVExpr():
+def parse_factor():
+    if parse_value():
+        if parse_v_expr():
             return True
         else:
             return False
@@ -46,11 +46,11 @@ def parseFactor():
 #             "*" <term>
 #             "/" <term>
 #             "%" <term>
-def parseFExpr():
+def parse_f_expr():
     # "*" <term>, "/" <term>, "%" <term>
-    if nextToken[0] in [lexer.TIMES, lexer.DIVIDE, lexer.MODULO]:
+    if next_token[0] in [lexer.TIMES, lexer.DIVIDE, lexer.MODULO]:
         lex()
-        if parseTerm():
+        if parse_term():
             return True
         else:
             return False
@@ -59,9 +59,9 @@ def parseFExpr():
         return True
 
 # <term> -> <factor> <f_expr>
-def parseTerm():
-    if parseFactor():
-        if parseFExpr():
+def parse_term():
+    if parse_factor():
+        if parse_f_expr():
             return True
         else:
             return False
@@ -71,11 +71,11 @@ def parseTerm():
 # <t_expr> -> 𝜀
 #             "+" <n_expr>
 #             "-" <n_expr>
-def parseTExpr():
+def parse_t_expr():
     # "+" <n_expr>, "-" <n_expr>
-    if nextToken[0] in [lexer.PLUS, lexer.MINUS]:
+    if next_token[0] in [lexer.PLUS, lexer.MINUS]:
         lex()
-        if parseNExpr():
+        if parse_n_expr():
             return True
         else:
             return False
@@ -84,9 +84,9 @@ def parseTExpr():
         return True
 
 # <n_expr> -> <term> <t_expr>
-def parseNExpr():
-    if parseTerm():
-        if parseTExpr():
+def parse_n_expr():
+    if parse_term():
+        if parse_t_expr():
             return True
         else:
             return False
@@ -96,11 +96,11 @@ def parseNExpr():
 # <b_expr> -> 𝜀
 #             "and" <n_expr>
 #             "or" <n_expr>
-def parseBExpr():
+def parse_b_expr():
     # "and" <n_expr>, "or" <n_expr>
-    if nextToken[0] == lexer.KEYWORD and nextToken[1] in ['and', 'or']:
+    if next_token[0] == lexer.KEYWORD and next_token[1] in ['and', 'or']:
         lex()
-        if parseNExpr():
+        if parse_n_expr():
             return True
         else:
             return False
@@ -109,9 +109,9 @@ def parseBExpr():
         return True
 
 # <expr> -> <n_expr> <b_expr>
-def parseExpression():
-    if parseNExpr():
-        if parseBExpr():
+def parse_expr():
+    if parse_n_expr():
+        if parse_b_expr():
             return True
         else:
             error('Invalid B Expression')
@@ -125,12 +125,12 @@ def parseExpression():
 #            "-" <value>
 #            ID
 #            INT
-def parseVal():
+def parse_value():
     # "(" <expr> ")"
-    if nextToken[0] == lexer.OPEN_PAR:
+    if next_token[0] == lexer.OPEN_PAR:
         lex()
-        if parseExpression():
-            if nextToken[0] == lexer.CLOSE_PAR:
+        if parse_expr():
+            if next_token[0] == lexer.CLOSE_PAR:
                 lex()
                 return True
             else:
@@ -139,15 +139,15 @@ def parseVal():
         else:
             return False
     # "not" <value>
-    elif nextToken[0] == lexer.KEYWORD and nextToken[1] == 'not':
+    elif next_token[0] == lexer.KEYWORD and next_token[1] == 'not':
         lex()
-        return parseVal()
+        return parse_value()
     # "-" <value>
-    elif nextToken[0] == lexer.MINUS:
+    elif next_token[0] == lexer.MINUS:
         lex()
-        return parseVal()
+        return parse_value()
     # ID or INT
-    elif nextToken[0] in [lexer.INT, lexer.ID]:
+    elif next_token[0] in [lexer.INT, lexer.ID]:
         lex()
         return True
     else:
@@ -157,11 +157,11 @@ def parseVal():
 # <print> -> "print" <p-arg>
 # <p-arg> -> STRING
 #            <expr>
-def parsePrint():
+def parse_print():
     # "print" STRING
-    if nextToken[0] == lexer.STRING:
+    if next_token[0] == lexer.STRING:
         lex()
-        if nextToken[0] == lexer.SEMICOLON:
+        if next_token[0] == lexer.SEMICOLON:
             lex()
             return True
         else:
@@ -169,8 +169,8 @@ def parsePrint():
             return False
     # "print" <expr>
     else:
-        if parseExpression():
-            if nextToken[0] == lexer.SEMICOLON:
+        if parse_expr():
+            if next_token[0] == lexer.SEMICOLON:
                 lex()
                 return True
             else:
@@ -180,10 +180,10 @@ def parsePrint():
             return False
 
 # <input> -> "get" ID
-def parseInput():
-    if nextToken[0] == lexer.ID:
+def parse_input():
+    if next_token[0] == lexer.ID:
         lex()
-        if nextToken[0] == lexer.SEMICOLON:
+        if next_token[0] == lexer.SEMICOLON:
             lex()
             return True
         else:
@@ -194,11 +194,11 @@ def parseInput():
         return False
 
 # <assign> -> ID "=" <expr>
-def parseAssign():
-    if nextToken[0] == lexer.EQUAL:
+def parse_assign():
+    if next_token[0] == lexer.EQUAL:
         lex()
-        if parseExpression():
-            if nextToken[0] == lexer.SEMICOLON:
+        if parse_expr():
+            if next_token[0] == lexer.SEMICOLON:
                 lex()
                 return True
             else:
@@ -216,16 +216,16 @@ def parseAssign():
 #           <if>
 #           <while>
 #           <for>
-def parseStmt():
+def parse_stmt():
     global if_state, while_state, for_state
-    if nextToken[0] == lexer.KEYWORD:
-        match nextToken[1]:
+    if next_token[0] == lexer.KEYWORD:
+        match next_token[1]:
             case 'print':
                 lex()
-                return parsePrint()
+                return parse_print()
             case 'get':
                 lex()
-                return parseInput()
+                return parse_input()
             case 'and':
                 error('"and" must be part of an expression.')
                 return False
@@ -238,15 +238,15 @@ def parseStmt():
             case 'if':
                 lex()
                 if_state = True
-                return parseIf()
+                return parse_if()
             case 'while':
                 lex()
                 while_state = True
-                return parseWhile()
+                return parse_while()
             case 'for':
                 lex()
                 for_state = True
-                return parseFor()
+                return parse_for()
             case 'then':
                 if if_state:
                     return None
@@ -271,43 +271,43 @@ def parseStmt():
             case _:
                 error('Expected Command')
                 return False    
-    elif nextToken[0] == lexer.ID:
+    elif next_token[0] == lexer.ID:
         lex()
-        return parseAssign()
+        return parse_assign()
     else:
         error('Expected Statement')
         return False
 
 # <prog> -> <stmt_list>
 # <stmt_list> -> <stmt> ";" <stmt_list>
-def parseProg():
-    res = parseStmt()
+def parse_prog():
+    res = parse_stmt()
     if res == None:
         return True
     elif res:
-        if nextToken[0] != lexer.END_OF_INPUT:
-            res = parseProg()
+        if next_token[0] != lexer.END_OF_INPUT:
+            res = parse_prog()
     return res
 
 # <if> -> "if" <expr> "then" <stmt_list> "else" <stmt_list> "end"
-def parseIf():
+def parse_if():
     global if_state
     # "if" <expr>
-    if parseExpression():
+    if parse_expr():
         # "if" <expr> "then"
-        if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'then':
+        if next_token[0] == lexer.KEYWORD and next_token[1] == 'then':
             lex()
             # "if" <expr> "then" <stmt_list>
-            if parseProg():
+            if parse_prog():
                 # "if" <expr> "then" <stmt_list> "else"
-                if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'else':
+                if next_token[0] == lexer.KEYWORD and next_token[1] == 'else':
                     lex()
                     # "if" <expr> "then" <stmt_list> "else" <stmt_list>
-                    if parseProg():
+                    if parse_prog():
                         # "if" <expr> "then" <stmt_list> "else" <stmt_list> "end"
-                        if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'end':
+                        if next_token[0] == lexer.KEYWORD and next_token[1] == 'end':
                             lex()
-                            if nextToken[0] == lexer.SEMICOLON:
+                            if next_token[0] == lexer.SEMICOLON:
                                 lex()
                                 if_state = False
                                 return True
@@ -320,9 +320,9 @@ def parseIf():
                     else:
                         return False
                 # "if" <expr> "then" <stmt_list> "end"
-                elif nextToken[0] == lexer.KEYWORD and nextToken[1] == 'end':
+                elif next_token[0] == lexer.KEYWORD and next_token[1] == 'end':
                     lex()
-                    if nextToken[0] == lexer.SEMICOLON:
+                    if next_token[0] == lexer.SEMICOLON:
                         lex()
                         if_state = False
                         return True
@@ -341,19 +341,19 @@ def parseIf():
         return False
 
 # <while> -> "while" <expr> "do" <stmt_list> "end"
-def parseWhile():
+def parse_while():
     global while_state
     # "while" <expr>
-    if parseExpression():
+    if parse_expr():
         # "while" <expr> "do"
-        if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'do':
+        if next_token[0] == lexer.KEYWORD and next_token[1] == 'do':
             lex()
             # "while" <expr> "do" <stmt_list>
-            if parseProg():
+            if parse_prog():
                 # while <expr> "do" <stmt_list> "end"
-                if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'end':
+                if next_token[0] == lexer.KEYWORD and next_token[1] == 'end':
                     lex()
-                    if nextToken[0] == lexer.SEMICOLON:
+                    if next_token[0] == lexer.SEMICOLON:
                         lex()
                         while_state = False
                         return True
@@ -372,23 +372,23 @@ def parseWhile():
         return False
 
 # <for> -> "for" ID INT "do" <stmt_list> "end"
-def parseFor():
+def parse_for():
     global for_state
     # "for" ID
-    if nextToken[0] == lexer.ID:
+    if next_token[0] == lexer.ID:
         lex()
         # "for" ID INT
-        if nextToken[0] == lexer.INT:
+        if next_token[0] == lexer.INT:
             lex()
             # "for" ID INT "do"
-            if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'do':
+            if next_token[0] == lexer.KEYWORD and next_token[1] == 'do':
                 lex()
                 # "for" ID INT "do" <stmt_list>
-                if parseProg():
+                if parse_prog():
                     # "for" ID INT "do" <stmt_list> "end"
-                    if nextToken[0] == lexer.KEYWORD and nextToken[1] == 'end':
+                    if next_token[0] == lexer.KEYWORD and next_token[1] == 'end':
                         lex()
-                        if nextToken[0] == lexer.SEMICOLON:
+                        if next_token[0] == lexer.SEMICOLON:
                             lex()
                             for_state = False
                             return True
@@ -401,7 +401,7 @@ def parseFor():
                 else:
                     return False
             else:
-                error('Expected "end"')
+                error('Expected "do"')
                 return False
         else:
             error('Expected INT')
@@ -411,9 +411,7 @@ def parseFor():
         return False        
 
 # Driver
-
 input = list(sys.stdin.read())
 lex()
-
-if parseProg():
+if parse_prog():
     print('Program is correct.')

@@ -21,12 +21,12 @@ do
     if x >= y
     then
         # print x
-        print "x...\t" + x;
+        print x;
     else
         # print y
-        print "y...\t" + y;
+        print y;
     end;
-    print "z...\t" + z;
+    print z;
 end; # end for loop
 
 # make x and y the same 
